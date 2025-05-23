@@ -2,6 +2,7 @@ const form = document.querySelector('form')
 const input = document.querySelector('.input-api');
 const dropdown = document.querySelector('.dropdown');
 const containerRepositores = document.querySelector('.render-repositores');
+let response = []; 
 
 function debounce(fn, debounceTime) {
     let timer = 0;
@@ -23,8 +24,10 @@ async function getRepositories() {
 
     try {
         const res = await fetch(`https://api.github.com/search/repositories?q=${query}&per_page=5`);
+
+        if (!res.ok) throw new Error(`HTTP ошибка: ${res.status}`);
         const data = await res.json();
-        const response = data.items;
+        response = data.items;
 
         dropdown.innerHTML = '';
         
@@ -37,19 +40,21 @@ async function getRepositories() {
             })
             dropdown.appendChild(li);
         });
-        dropdown.style.display = 'block';   
+        dropdown.style.display = 'block'; 
     }
     catch (error) {
         console.error('Произошла ошибка:', error);
+        alert('Ошибка загрузки данных. Попробуйте еще раз');
+        dropdown.style.display = 'none';
     }
 };
 
-function renderRepositoryForm(repoName) {
+function renderRepositoryForm(repo) {
     const item = document.createElement('div');
     item.className = 'repository-item';
 
     const repository = document.createElement('div');
-    repository.textContent = `Name: ${repoName}\nOwner: ${repoName}\nStarsr: ${123}`;
+    repository.textContent = `Name: ${repo.name}\nOwner: ${repo.owner.login}\nStars: ${repo.stargazers_count}`;
 
     const img = document.createElement('img');
     img.src = './img/delete.png';
@@ -64,18 +69,23 @@ function renderRepositoryForm(repoName) {
 }
 
 
-const debouncedFetch = debounce(getRepositories, 300);
+const debouncedFetch = debounce(getRepositories, 700);
 
 form.addEventListener('input', function (e) {
     e.preventDefault();
-    debouncedFetch();
+    try {
+        debouncedFetch();
+    } catch (err) {
+        console.error('Ошибка в debouncedFetch:', err);
+    }
 });
 
 dropdown.addEventListener('click', function(e) {
     if (e.target.tagName === 'LI') {
         const repoName = e.target.textContent;
+        const repo = response.find(r => r.name === repoName);
         input.value = '';
         dropdown.style.display = 'none';
-        renderRepositoryForm(repoName);
+        renderRepositoryForm(repo);
     }
 });

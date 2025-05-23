@@ -6,9 +6,10 @@ body {
 .container {
     display: flex; 
     justify-content: center;
-    width: 772px;
+    width: 600px;
     height: 551px;
     background-color: #C4C4C4;
+    overflow-y: auto;
 }
 
 input {
